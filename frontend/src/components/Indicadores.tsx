@@ -30,7 +30,17 @@ const Indicadores: React.FC = () => {
   const [novoRealizadoMensal, setNovoRealizadoMensal] = useState(0);
   const [novoRealizadoAcumulado, setNovoRealizadoAcumulado] = useState(0);
   const [agrupadores, setAgrupadores] = useState<string[]>([]);
+  const [showHistorico, setShowHistorico] = useState(false);
+  const [valorHistorico, setValorHistorico] = useState(0);
+  const [indicadorSelecionado, setIndicadorSelecionado] = useState<Indicador | null>(null);
 
+  
+  const abrirModalHistorico = (indicador: Indicador) => {
+    setIndicadorSelecionado(indicador);
+    setValorHistorico(0);
+    setShowHistorico(true);
+  };
+  
 
   const buscarIndicadores = () => {
     axios.get("http://localhost:8000/indicadores")
@@ -179,7 +189,9 @@ const Indicadores: React.FC = () => {
   </>
 )}
 
-
+<button className="btn btn-sm btn-outline-success mt-2 ms-2" onClick={() => abrirModalHistorico(i)}>
+  ➕ Registrar valor diário
+</button>
   <button className="btn btn-sm btn-outline-dark mt-2" onClick={() => abrirModal(i)}>✏️ Editar</button>
   <button className="btn btn-sm btn-outline-danger mt-2 ms-2" onClick={() => excluirIndicador(i.id)}>🗑️ Excluir</button>
 </div>
@@ -289,6 +301,41 @@ const Indicadores: React.FC = () => {
       }}
     >
       Criar
+    </Button>
+  </Modal.Footer>
+</Modal>
+
+<Modal show={showHistorico} onHide={() => setShowHistorico(false)}>
+  <Modal.Header closeButton>
+    <Modal.Title>Adicionar valor ao histórico</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    <Form>
+      <Form.Group>
+        <Form.Label>Valor</Form.Label>
+        <Form.Control
+          type="number"
+          value={valorHistorico}
+          onChange={(e) => setValorHistorico(parseFloat(e.target.value))}
+        />
+      </Form.Group>
+    </Form>
+  </Modal.Body>
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setShowHistorico(false)}>Cancelar</Button>
+    <Button
+      variant="success"
+      onClick={() => {
+        if (!indicadorSelecionado) return;
+        axios.post(`http://localhost:8000/historico/${indicadorSelecionado.id}`, {
+          valor: valorHistorico
+        }).then(() => {
+          setShowHistorico(false);
+          buscarIndicadores();
+        }).catch(() => alert("Erro ao adicionar histórico"));
+      }}
+    >
+      Adicionar
     </Button>
   </Modal.Footer>
 </Modal>

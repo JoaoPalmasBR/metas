@@ -26,6 +26,5 @@ class HistoricoDiario(Base):
     id = Column(Integer, primary_key=True, index=True)
     indicador_id = Column(Integer, ForeignKey("indicadores.id"))
     data = Column(Date)
-    realizado_mensal = Column(Float)
-    realizado_acumulado = Column(Float)
+    valor = Column(Float)
     indicador = relationship("Indicador")

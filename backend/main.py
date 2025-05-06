@@ -5,6 +5,7 @@ from database import engine, get_db
 import models
 from fastapi import HTTPException
 from pydantic import BaseModel
+from datetime import date
 
 app = FastAPI()
 
@@ -109,3 +110,28 @@ def deletar_indicador(indicador_id: int, db: Session = Depends(get_db)):
     db.delete(indicador)
     db.commit()
     return {"mensagem": "Indicador deletado com sucesso"}
+
+class HistoricoInput(BaseModel):
+    valor: float
+    data: date = date.today()
+
+@app.post("/historico/{indicador_id}")
+def adicionar_historico(indicador_id: int, entrada: HistoricoInput, db: Session = Depends(get_db)):
+    indicador = db.query(models.Indicador).filter(models.Indicador.id == indicador_id).first()
+    if not indicador:
+        raise HTTPException(status_code=404, detail="Indicador não encontrado")
+
+    # Adiciona histórico
+    novo_historico = models.HistoricoDiario(
+        indicador_id=indicador_id,
+        data=entrada.data,
+        valor=entrada.valor
+    )
+    db.add(novo_historico)
+
+    # Atualiza os valores no indicador
+    indicador.realizado_mensal += entrada.valor
+    indicador.realizado_acumulado += entrada.valor
+
+    db.commit()
+    return {"mensagem": "Histórico adicionado e indicador atualizado"}
