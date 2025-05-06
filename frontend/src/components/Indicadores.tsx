@@ -12,6 +12,8 @@ interface Indicador {
   meta_acumulada: number;
   realizado_mensal: number;
   realizado_acumulado: number;
+  meta_extra_porcentagem: number;
+
 }
 
 
@@ -33,6 +35,8 @@ const Indicadores: React.FC = () => {
   const [showHistorico, setShowHistorico] = useState(false);
   const [valorHistorico, setValorHistorico] = useState(0);
   const [indicadorSelecionado, setIndicadorSelecionado] = useState<Indicador | null>(null);
+  const [novoMetaExtra, setNovoMetaExtra] = useState(120); // valor padrão
+
 
   
   const abrirModalHistorico = (indicador: Indicador) => {
@@ -123,6 +127,11 @@ const Indicadores: React.FC = () => {
           <div className="row">
             {agrupados[grupo].map((i: Indicador) => {
               const percentual = i.meta_mensal ? Math.round((i.realizado_mensal / i.meta_mensal) * 100) : 0;
+              const pctMensal = i.meta_mensal ? (i.realizado_mensal / i.meta_mensal) * 100 : 0;
+              // const superouMetaExtra = i.realizado_mensal >= (i.meta_mensal * (i.meta_extra_porcentagem / 100));
+              const superouMetaExtra = i.realizado_mensal >= (
+                i.meta_mensal * ((i.meta_extra_porcentagem ?? 120) / 100)
+              );
               const cor = percentual >= 100 ? "success" : "secondary";
 
               return (
@@ -145,7 +154,10 @@ const Indicadores: React.FC = () => {
       🔻 Faltam {(i.meta_mensal - i.realizado_mensal).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} para bater a meta mensal
     </p>
   )}
-  <div className="mb-2">
+  {superouMetaExtra && (
+  <span className="badge bg-warning text-dark ms-2">👑 Meta extra batida</span>
+)}
+<div className="mb-2">
     <small><strong>Atingimento mensal:</strong> {Math.round((i.realizado_mensal / i.meta_mensal) * 100)}%</small>
     <div className="progress">
       <div
@@ -157,9 +169,17 @@ const Indicadores: React.FC = () => {
       </div>
     </div>
   </div>
-
   {/* Separador visual */}
   <hr className="my-3" />
+<p><strong>Meta extra:</strong> {
+  (i.meta_mensal * ((i.meta_extra_porcentagem ?? 120) / 100)).toLocaleString("pt-BR", {
+    style: "currency", currency: "BRL"
+  })
+}</p>
+  
+
+  {/* Separador visual */}
+  {/* <hr className="my-3" /> */}
 
   { i.meta_acumulada > 0 && (
   <>
@@ -228,6 +248,16 @@ const Indicadores: React.FC = () => {
               />
             </Form.Group>
           </Form>
+          <h6 className="mt-4">Avançado</h6>
+          <Form.Group className="mb-2">
+  <Form.Label>Meta extra (% da meta mensal)</Form.Label>
+  <Form.Control
+    type="number"
+    value={novoMetaExtra}
+    onChange={(e) => setNovoMetaExtra(parseFloat(e.target.value))}
+  />
+</Form.Group>
+
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
@@ -274,6 +304,15 @@ const Indicadores: React.FC = () => {
         <Form.Control type="number" value={novoRealizadoAcumulado} onChange={(e) => setNovoRealizadoAcumulado(parseFloat(e.target.value))} />
       </Form.Group>
     </Form>
+    <h6 className="mt-4">Avançado</h6>
+    <Form.Group className="mb-2">
+  <Form.Label>Meta extra (% da meta mensal)</Form.Label>
+  <Form.Control
+    type="number"
+    value={novoMetaExtra}
+    onChange={(e) => setNovoMetaExtra(parseFloat(e.target.value))}
+  />
+</Form.Group>
   </Modal.Body>
   <Modal.Footer>
     <Button variant="secondary" onClick={() => setShowNovo(false)}>Cancelar</Button>
@@ -286,7 +325,9 @@ const Indicadores: React.FC = () => {
           meta_mensal: novoMetaMensal,
           meta_acumulada: novoMetaAcumulada,
           realizado_mensal: novoRealizadoMensal,
-          realizado_acumulado: novoRealizadoAcumulado
+          realizado_acumulado: novoRealizadoAcumulado,
+          meta_extra_porcentagem: novoMetaExtra
+
         }).then(() => {
           setShowNovo(false);
           buscarIndicadores();
@@ -339,6 +380,7 @@ const Indicadores: React.FC = () => {
     </Button>
   </Modal.Footer>
 </Modal>
+
 
     </div>
   );

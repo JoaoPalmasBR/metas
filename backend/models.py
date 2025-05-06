@@ -20,6 +20,8 @@ class Indicador(Base):
     realizado_mensal = Column(Float)
     realizado_acumulado = Column(Float)
     agrupador = relationship("Agrupador")
+    meta_extra_porcentagem = Column(Float, default=120.0)  # Ex: 120 para 120%
+
 
 class HistoricoDiario(Base):
     __tablename__ = "historico_diario"
@@ -28,3 +30,4 @@ class HistoricoDiario(Base):
     data = Column(Date)
     valor = Column(Float)
     indicador = relationship("Indicador")
+
